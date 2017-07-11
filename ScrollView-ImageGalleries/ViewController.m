@@ -13,7 +13,8 @@
 @property (nonatomic, strong) UIImageView *imageView1;
 @property (nonatomic, strong) UIImageView *imageView2;
 @property (nonatomic, strong) UIImageView *imageView3;
-@property (nonatomic, strong) UIPageControl *pageControl;
+//@property (nonatomic, strong) UIPageControl *pageControl;
+@property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
 
 @end
 
@@ -25,10 +26,13 @@
   self.scrollView.delegate = self;
   [self setupScrollViews];
   self.scrollView.pagingEnabled = YES;
-  [self setupPageControl];
+//  [self setupPageControl]; // used when pagecontrol is setup programatically
+  
+  UITapGestureRecognizer *pageTappedRecog = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(pageTapped:)];
+  [self.pageControl addGestureRecognizer:pageTappedRecog];
+  [self.view bringSubviewToFront:self.pageControl]; //make pagecontrol vissible in front
+ 
 }
-
-
 
 - (void)setupScrollViews {
   self.scrollView = [UIScrollView new];
@@ -79,19 +83,19 @@
   
 }
 
-- (void)setupPageControl {
-  self.pageControl = [UIPageControl new];
-  [self.view addSubview:self.pageControl];
-  [self.view bringSubviewToFront:self.pageControl];
-  self.pageControl.backgroundColor = [UIColor blackColor];
-  self.pageControl.alpha = 0.5;
-  self.pageControl.numberOfPages = self.scrollView.subviews.count;
-  CGRect frame = CGRectMake(0, self.view.bounds.size.height-50, self.view.bounds.size.width, 50.0);
-  self.pageControl.frame = frame;
+//setup pagecontrol programmatically
 
-}
-
-
+//- (void)setupPageControl {
+//  self.pageControl = [UIPageControl new];
+//  [self.view addSubview:self.pageControl];
+//  [self.view bringSubviewToFront:self.pageControl];
+//  self.pageControl.backgroundColor = [UIColor blackColor];
+//  self.pageControl.alpha = 0.5;
+//  self.pageControl.numberOfPages = self.scrollView.subviews.count;
+//  CGRect frame = CGRectMake(0, self.view.bounds.size.height-50, self.view.bounds.size.width, 50.0);
+//  self.pageControl.frame = frame;
+//
+//}
 
 - (void)didReceiveMemoryWarning {
   [super didReceiveMemoryWarning];
@@ -103,5 +107,24 @@
   NSLog(@"%@", NSStringFromCGPoint(scrollView.contentOffset));
 }
 
+- (void)pageTapped:(UITapGestureRecognizer *)sender {
+  CGFloat locationX = [sender locationInView:sender.view].x;
+  CGFloat partitionSize = (int) sender.view.bounds.size.width / self.pageControl.numberOfPages;
+  
+  self.pageControl.currentPage = (int) (locationX / partitionSize);
+  
+  [UIView animateWithDuration:1
+                        delay:0
+       usingSpringWithDamping:1
+        initialSpringVelocity:0.1
+                      options:UIViewAnimationOptionCurveEaseInOut
+                   animations:^{
+                     self.scrollView.bounds = CGRectMake(self.scrollView.frame.size.width * self.pageControl.currentPage,
+                                                         self.scrollView.frame.origin.y,
+                                                         self.scrollView.frame.size.width,
+                                                         self.scrollView.frame.size.height);
+                   }
+                   completion:nil];
+}
 
 @end
